@@ -26,3 +26,13 @@ class MandatoryValueMissingException(Exception):
 
     def __str__(self):
         return self.message
+
+
+class MandatoryValueUnnecessaryException(Exception):
+    def __init__(self, command: str):
+        self.message = f"The '{command}' command is being called with too many mandatory arguments.\n" \
+                       f"You can type 'p:help {command}' for more info on this command and its arguments."
+        super().__init__()
+
+    def __str__(self):
+        return self.message

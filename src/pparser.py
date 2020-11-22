@@ -1,6 +1,7 @@
 from typing import List
 
-from pexceptions import InvalidArgumentException, OptionValueMissingException, MandatoryValueMissingException
+from pexceptions import InvalidArgumentException, OptionValueMissingException, MandatoryValueMissingException, \
+    MandatoryValueUnnecessaryException
 
 
 def check_formatting(command: str, input: List[str], options: dict):
@@ -33,6 +34,11 @@ def check_formatting(command: str, input: List[str], options: dict):
             if word_next.startswith('-'):
                 # Next word should not be an option identifier but a value
                 raise OptionValueMissingException(command, word)
+        # The word is not an option identifier
+        else:
+            # Check if we are still assigning mandatory arguments
+            if not options[options_keys[i]][1]:
+                raise MandatoryValueUnnecessaryException(command)
 
         i += step_size
 
