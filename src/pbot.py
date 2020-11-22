@@ -35,5 +35,12 @@ async def on_command_error(ctx: commands.Context, error: commands.CommandError):
 async def cmd_create(ctx: commands.Context, *, msg: str):
     await pcommands.create(ctx, msg)
 
+@bot.command(
+    name='respond',
+    help=f"{role_msg} Respond to a poll.",
+)
+async def cmd_create(ctx: commands.Context, pid: int, response: str):
+    await pcommands.respond(ctx, pid, response)
+
 
 bot.run(TOKEN)
