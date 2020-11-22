@@ -5,7 +5,7 @@ from typing import List
 import discord
 from discord.ext import commands
 
-from pparser import parse, check_formatting
+from pparser import parse
 from ppoll_manager import create_poll, respond_to_poll
 
 

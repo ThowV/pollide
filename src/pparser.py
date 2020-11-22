@@ -12,7 +12,7 @@ def parse(command: str, input: List[str], options: dict) -> dict:
         word = input[i]
 
         # Validate formatting
-        step_size = validate_formatting(command, input, options, i, word, options_keys)
+        step_size = validate_format(command, input, options, i, word, options_keys)
 
         # Validate typing
         # ...
@@ -25,10 +25,15 @@ def parse(command: str, input: List[str], options: dict) -> dict:
 
         i += step_size
 
+    # Set untouched option value pairs to None
+    for option, arg in options.items():
+        if isinstance(arg, list) and None in arg:
+            options[option] = None
+
     return options
 
 
-def validate_formatting(command: str, input: List[str], options: dict, index: int, word: str, options_keys: list) -> int:
+def validate_format(command: str, input: List[str], options: dict, index: int, word: str, options_keys: list) -> int:
     step_size = 1
 
     # Check if the word is an option identifier
@@ -62,5 +67,6 @@ def validate_formatting(command: str, input: List[str], options: dict, index: in
     return step_size
 
 
-def validate_typing():
-    pass
+#def validate_type(command: str, input: List[str], options: dict, index: int, word: str, options_keys: list):
+#    format = options[options_keys[index]][2]
+#    print(format)
