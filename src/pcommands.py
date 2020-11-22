@@ -1,4 +1,5 @@
 import shlex
+import traceback
 from typing import List
 
 import discord
@@ -26,8 +27,7 @@ async def create(ctx: commands.Context, msg: str):
     input = shlex.split(msg)
 
     try:
-        check_formatting('create', input, options)
-        input = parse(input, options)
+        input = parse('create', input, options)
 
         # Execute command
         poll = create_poll(input)
@@ -40,13 +40,18 @@ async def create(ctx: commands.Context, msg: str):
         )
         embed.set_thumbnail(url=poll.logo_url)
 
+        print(embed.to_dict())
+
         await ctx.send(embed=embed)
     except Exception as e:
+        traceback.print_exc()
+
         await ctx.send(embed=discord.Embed(
             title='Error',
             description=str(e),
             color=discord.Color.red()
         ))
+
         return
 
 
