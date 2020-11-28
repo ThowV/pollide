@@ -50,21 +50,32 @@ class PPoll:
         url = ''
 
         # Get game
-        if game_search_result.status_code == 200:
-            game = game_search_result.json()['data'][0]
+        if not game_search_result.status_code == 200:
+            return ''
+
+        json = game_search_result.json()
+
+        if not json['data']:
+            return ''
+
+        game = json['data'][0]
 
         # Get logo
-        if game:
-            logos_search_result = requests.get(f"https://www.steamgriddb.com/api/v2/logos/game/{game['id']}",
-                                               headers={'Authorization': f"Bearer {os.getenv('STEAMGRIDDB_API_KEY')}"})
+        if not game:
+            return ''
 
-            if logos_search_result.status_code == 200:
-                json = logos_search_result.json()
+        logos_search_result = requests.get(f"https://www.steamgriddb.com/api/v2/logos/game/{game['id']}",
+                                           headers={'Authorization': f"Bearer {os.getenv('STEAMGRIDDB_API_KEY')}"})
 
-                if json['data']:
-                    url = json['data'][0]['url']
+        if not logos_search_result.status_code == 200:
+            return ''
 
-        return url
+        json = logos_search_result.json()
+
+        if not json['data']:
+            return ''
+
+        return json['data'][0]['url']
 
     def get_as_embed(self):
         embed = discord.Embed(

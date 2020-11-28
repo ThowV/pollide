@@ -7,11 +7,20 @@ from ppol import PPoll
 
 
 class PCreate(PCommand):
+    @staticmethod
+    def get_name() -> str:
+        return 'create'
+
+    @staticmethod
+    def get_info() -> str:
+        return 'Create a poll.'
+
+    @staticmethod
+    def get_role() -> str:
+        return 'PollideU'
+
     def __init__(self):
-        self.parser = argparse.ArgumentParser(
-            prog='create',
-            description='Create a poll (Requires the PollideU role.)'
-        )
+        self.parser = argparse.ArgumentParser()
 
         # Add arguments
         self.parser.add_argument('title', nargs='+',
@@ -47,7 +56,3 @@ class PCreate(PCommand):
 
         ppoll_store.store(poll)
         await context.send(embed=poll.get_as_embed())
-
-    @staticmethod
-    def get_role() -> str:
-        return 'PollideU'

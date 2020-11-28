@@ -6,11 +6,16 @@ from pcommands.pcommand import PCommand
 
 
 class PRespond(PCommand):
+    @staticmethod
+    def get_name() -> str:
+        return 'respond'
+
+    @staticmethod
+    def get_info() -> str:
+        return 'Respond to a poll.'
+
     def __init__(self):
-        self.parser = argparse.ArgumentParser(
-            prog='respond',
-            description='Respond to a poll'
-        )
+        self.parser = argparse.ArgumentParser()
 
         # Add arguments
         self.parser.add_argument('poll_id', type=int,
