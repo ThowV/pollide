@@ -6,7 +6,7 @@ from pcommands.pcommand import PCommand
 from ppol import PPoll
 
 
-class Create(PCommand):
+class PCreate(PCommand):
     def __init__(self):
         self.parser = argparse.ArgumentParser(
             prog='create',
@@ -47,3 +47,7 @@ class Create(PCommand):
 
         ppoll_store.store(poll)
         await context.send(embed=poll.get_as_embed())
+
+    @staticmethod
+    def get_role() -> str:
+        return 'PollideU'

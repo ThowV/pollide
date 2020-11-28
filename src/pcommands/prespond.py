@@ -5,11 +5,11 @@ import ppoll_store
 from pcommands.pcommand import PCommand
 
 
-class Create(PCommand):
+class PRespond(PCommand):
     def __init__(self):
         self.parser = argparse.ArgumentParser(
             prog='respond',
-            description='Respond to a poll (Requires the PollideU role.)'
+            description='Respond to a poll'
         )
 
         # Add arguments
