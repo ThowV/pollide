@@ -15,7 +15,10 @@ class PRespond(PCommand):
         return 'Respond to a poll.'
 
     def __init__(self):
-        self.parser = argparse.ArgumentParser()
+        self.parser = argparse.ArgumentParser(
+            prog='respond',
+            description='Respond to a poll (Requires the PollideU role.)'
+        )
 
         # Add arguments
         self.parser.add_argument('poll_id', type=int,

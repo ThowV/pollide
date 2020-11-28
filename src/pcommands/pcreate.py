@@ -20,7 +20,10 @@ class PCreate(PCommand):
         return 'PollideU'
 
     def __init__(self):
-        self.parser = argparse.ArgumentParser()
+        self.parser = argparse.ArgumentParser(
+            prog='create',
+            description='Create a poll'
+        )
 
         # Add arguments
         self.parser.add_argument('title', nargs='+',
