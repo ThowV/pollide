@@ -54,8 +54,15 @@ class PCreate(PCommand):
                                  help='Date the poll closes.')
 
     async def run(self, context: discord.ext.commands.Context, input: str):
+        # Create a poll object, parse arguments to the poll object and clean the poll object.
         poll = PPoll()
         self.parser.parse_args(input.split(), namespace=poll)
+        poll.clean()
 
-        ppoll_store.store(poll)
-        await context.send(embed=poll.get_as_embed())
+        # Send the poll embed, get the id from the sent message and store the poll with the id in the store.
+        message = await context.send(embed=poll.get_as_embed())
+        ppoll_store.store(poll, message.id)
+
+        # Add emoji reactions to sent message.
+        for emoji in poll.get_emojis():
+            await message.add_reaction(emoji)

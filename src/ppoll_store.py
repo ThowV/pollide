@@ -1,16 +1,10 @@
 from ppol import PPoll
 
 active_polls = {}
-pid_pointer = 1
 
 
-def store(poll: PPoll):
-    global pid_pointer
-
-    poll.clean()
-    poll.set_id(pid_pointer)
-    active_polls[poll.id] = poll
-    pid_pointer += 1
+def store(poll: PPoll, pid: int):
+    active_polls[pid] = poll
 
 
 def get(pid: int) -> PPoll:

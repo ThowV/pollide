@@ -3,10 +3,14 @@ import os
 import pkgutil
 
 import discord
-import pcommands
-
-from discord.ext import commands as dcommands, tasks as dtask
+from discord.ext import commands as dcommands
 from dotenv import load_dotenv
+
+import pcommands
+import pevents
+import ppoll_store
+import pvars
+from pevents import on_poll_reaction_add
 from pcommands import pcommand
 
 
@@ -42,30 +46,30 @@ if __name__ == '__main__':
     # Get the bot token and create a discord client.
     load_dotenv()
     DISCORD_TOKEN = os.getenv('DISCORD_BOT_TOKEN')
-    bot = dcommands.Bot(command_prefix='p:')
-    bot.remove_command('help')
+    pvars.bot = dcommands.Bot(command_prefix='p:')
+    pvars.bot.remove_command('help')
 
     pcommands_inst = get_pcommands()
 
     # Create discord command for each command
     for pcommand in pcommands_inst:
         @conditional_has_role(dcommands.has_role, pcommand.get_role())
-        @bot.command(
+        @pvars.bot.command(
             name=pcommand.get_name(),
             pass_context=True
         )
         async def dcommand(ctx: dcommands.Context, *, input='', command=pcommand):
             await command.run(ctx, input)
 
+
     # Subscribe to bot events
-    @bot.event
+    @pvars.bot.event
     async def on_ready():
-        await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='p:help'))
-        print(f'{bot.user.name} has connected to Discord!')
+        await pvars.bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='p:help'))
+        print(f'{pvars.bot.user.name} has connected to Discord!')
 
 
-
-    @bot.event
+    @pvars.bot.event
     async def on_command_error(ctx: dcommands.Context, error: dcommands.CommandError):
         if isinstance(error, dcommands.errors.CheckFailure):
             embed = discord.Embed(
@@ -77,5 +81,20 @@ if __name__ == '__main__':
             await ctx.send(embed=embed)
 
 
+    @pvars.bot.event
+    async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
+        message: discord.Message = reaction.message
+
+        if message.author.id == user.id:
+            return
+
+        poll = ppoll_store.get(message.id)
+
+        if poll:
+            await pevents.on_poll_reaction_add.run(reaction, user, poll)
+
+        # await dcommands.Context.send(reaction.message.channel, f'test man {message.id}')
+
+
     # Run discord client.
-    bot.run(DISCORD_TOKEN)
+    pvars.bot.run(DISCORD_TOKEN)
