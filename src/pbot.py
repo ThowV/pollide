@@ -5,7 +5,7 @@ import pkgutil
 import discord
 import pcommands
 
-from discord.ext import commands as dcommands
+from discord.ext import commands as dcommands, tasks as dtask
 from dotenv import load_dotenv
 from pcommands import pcommand
 
@@ -60,7 +60,9 @@ if __name__ == '__main__':
     # Subscribe to bot events
     @bot.event
     async def on_ready():
+        await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.listening, name='p:help'))
         print(f'{bot.user.name} has connected to Discord!')
+
 
 
     @bot.event
