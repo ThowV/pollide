@@ -32,16 +32,19 @@ class PCreate(PCommand):
         self.parser.add_argument('-d', '--description', nargs='+',
                                  help='Description of the poll.')
 
-        self.parser.add_argument('-o', '--options',     action='extend', nargs='+', type=str,
+        self.parser.add_argument('-o', '--options', action='extend', nargs='+', type=str,
                                  help='Options users can pick from.')
 
-        self.parser.add_argument('-m', '--maximum', action='extend', nargs='+', type=int, dest='max_responses',
-                                 help='Maximum number of responses.')
+        self.parser.add_argument('-mr', '--maximum_responses', action='extend', nargs='+', type=int,
+                                 dest='max_responses', help='Maximum number of responses.')
 
-        self.parser.add_argument('-a', '--anonymous',   action='store_true', default=False,
+        self.parser.add_argument('-mo', '--multiple_options', action='store_true', default=False, dest='multi_options',
+                                 help='Whether people can choose multiple options. (Default: %(default)s)')
+
+        self.parser.add_argument('-a', '--anonymous', action='store_true', default=False,
                                  help='Whether this poll is anonymous or not. (Default: %(default)s)')
 
-        self.parser.add_argument('-r', '--roles',    action='extend', nargs='+', type=str,
+        self.parser.add_argument('-r', '--roles', action='extend', nargs='+', type=str,
                                  help='Which roles are mentioned.')
 
         self.parser.add_argument('-c', '--channel', dest='dest_channel',

@@ -11,6 +11,7 @@ class PPoll:
     options: dict[str: int]
     responses: dict[int: int]  # User id: Option id
     max_responses: List[int]
+    multi_options: bool
     anonymous: bool
     roles: List[str]
     dest_channel: str
@@ -42,6 +43,11 @@ class PPoll:
             self.options = {option: 0 for option in self.options}
 
     def add_response(self, user_id, emoji_idx):
+        # Check if multiple responses are allowed, if not, remove last response
+        if not self.multi_options:
+            if user_id in self.responses:
+                self.remove_response(user_id)
+
         # Add response
         self.responses[user_id] = emoji_idx
 
@@ -50,7 +56,17 @@ class PPoll:
         response_amount = self.options.get(option)
         self.options[option] = response_amount + 1
 
+    def remove_response(self, user_id):
+        emoji_idx = self.responses.pop(user_id, None)
+
+        if emoji_idx:
+            # Remove response from response amount of option
+            option = list(self.options.keys())[emoji_idx]
+            response_amount = self.options.get(option)
+            self.options[option] = response_amount - 1
+
     def respond(self, option_id: int):
+        # Add response
         if option_id == 1:
             self.curr_y_responses += 1
         elif option_id == 2:
