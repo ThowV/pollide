@@ -25,7 +25,8 @@ async def run(channel_id: int, message_id: int, user_id: int, emoji_code: str):
 
     # Remove the emoji from the reactions
     if emoji_code_removed is not None:
-        print(emoji_code_removed)
+        user = await pvars.bot.fetch_user(user_id)
+        await message.remove_reaction(emoji_code_removed, user)
 
     # Update the poll embed
     await message.edit(embed=poll.get_as_embed())

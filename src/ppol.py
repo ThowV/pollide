@@ -29,7 +29,7 @@ class PPoll:
         self.description = ' '.join(self.description) if self.description else None
 
         if self.option_descriptions is None:
-            self.option_descriptions = ['yes', 'no', 'maybe']
+            self.option_descriptions = ['yes', 'maybe', 'no']
             self.options = {'\U00002705': 0, '\U00002796': 0, '\U0001F1FD': 0}
         else:
             self.options = {option: 0 for option in self.options}
