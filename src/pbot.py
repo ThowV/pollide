@@ -79,15 +79,11 @@ if __name__ == '__main__':
 
             await ctx.send(embed=embed)
 
-
     @pvars.bot.event
-    async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
-        await pevents.on_poll_reaction_add.run(reaction, user)
-
-
-    @pvars.bot.event
-    async def on_reaction_remove(reaction: discord.Reaction, user: discord.User):
-        await pevents.on_poll_reaction_remove.run(reaction, user)
+    async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
+        await pevents.on_poll_reaction_add.run(
+            payload.channel_id, payload.message_id, payload.user_id, payload.emoji.name
+        )
 
     @pvars.bot.event
     async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent):

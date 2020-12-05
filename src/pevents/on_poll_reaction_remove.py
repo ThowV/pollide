@@ -3,7 +3,7 @@ import ppoll_store
 import pvars
 
 
-async def run(channel_id: int, message_id: int, user_id: int, emoji: str):
+async def run(channel_id: int, message_id: int, user_id: int, emoji_code: str):
     # Get channel
     channel: discord.TextChannel = pvars.bot.get_channel(channel_id)
 
@@ -17,10 +17,10 @@ async def run(channel_id: int, message_id: int, user_id: int, emoji: str):
     # Get the poll object
     poll = ppoll_store.get(message_id)
 
-    if not poll:
+    if poll is None:
         return
 
     # Add the response and update the message
-    poll.remove_response(user_id, emoji)
+    poll.remove_response(user_id, emoji_code)
     await message.edit(embed=poll.get_as_embed())
 

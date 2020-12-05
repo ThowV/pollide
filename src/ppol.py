@@ -37,9 +37,11 @@ class PPoll:
     def add_response(self, user_id: int, emoji_code: str) -> Union[str, None]:
         """Return the the emoji that was last responded"""
 
+        emoji_code_removed = None
+
         # Check if multiple responses are allowed, if not, remove last response
         if not self.multi_options:
-            self.remove_response(user_id)
+            emoji_code_removed = self.remove_response(user_id)
 
         # Add response
         if user_id not in self.responses:
@@ -50,46 +52,40 @@ class PPoll:
         # Add one to response amount of option
         self.options[emoji_code] = self.options[emoji_code] + 1
 
-        return None
+        return emoji_code_removed
 
     def remove_response(self, user_id: int, emoji: Union[str, int] = None) -> Union[str, None]:
         """Return the the emoji code that was removed"""
 
+        emoji_code = emoji
+
         # Get the emoji code and emoji index in different scenarios
         if isinstance(emoji, int):
-            # Emoji index was provided, get the emoji name
-            emoji_idx = emoji
-
+            # Emoji index was provided, get the emoji code
             try:
-                emoji_code = self.get_emojis()[emoji_idx]
+                emoji_code = self.get_emojis()[emoji]
             except KeyError:
                 # Wrong emoji index provided.
                 return None
-        elif isinstance(emoji, str):
-            # Emoji code was provided, get the emoji index
-            emoji_code = emoji
-
-            try:
-                emoji_idx = self.get_emojis().index(emoji)
-            except ValueError:
-                # Wrong emoji code provided.
-                return None
-        else:
+        elif emoji is None:
             # Nothing was provided, get the emoji code and index
             try:
                 # We get the first emoji code because this block only triggers when one poll option is available
                 emoji_code = self.responses[user_id][0]
-                emoji_idx = self.get_emojis().index(emoji_code)
             except KeyError or ValueError:
-                # User id did not respond yet or emoji was not an option
+                # User id did not respond yet
                 return None
 
-        # Remove the emoji code from the user responses
-        self.responses[user_id].remove(emoji_code)
+        try:
+            # Remove the emoji code from the user responses
+            self.responses[user_id].remove(emoji_code)
 
-        # Remove response from option amounts
-        self.options[emoji_code] = self.options[emoji_code] - 1
+            # Remove response from option amounts
+            self.options[emoji_code] = self.options[emoji_code] - 1
+        except ValueError:
+            return None
 
+        # Return the removed emoji
         return emoji_code
 
     def get_logo_url(self) -> str:
