@@ -3,6 +3,7 @@ import discord
 
 from pbot import get_pcommands
 from pcommands.pcommand import PCommand
+from pembeds import PArgumentError, PError
 
 
 def generate_help() -> str:
@@ -50,11 +51,7 @@ def get_command_help_embed(command: str) -> discord.Embed:
         )
 
     if not help:
-        embed = discord.Embed(
-            title=f'{command.capitalize()} is not a valid command.',
-            description='Type p:help to see all commands',
-            color=discord.Color.red()
-        )
+        embed = PError.get_embed(PHelp.get_name(), f'{command} is not a valid command')
 
     return embed
 

@@ -23,19 +23,22 @@ class PPoll:
 
     def __init__(self):
         self.responses = {}
+        self.option_descriptions = []
 
     def clean(self):
+        # Set description and title
         self.title = ' '.join(self.title)
         self.description = ' '.join(self.description) if self.description else None
 
-        if self.option_descriptions is None:
+        # Set option descriptions and options
+        if not self.option_descriptions:
             self.option_descriptions = ['yes', 'maybe', 'no']
             self.options = {'\U00002705': 0, '\U00002796': 0, '\U0001F1FD': 0}
         else:
             self.options = {option: 0 for option in self.options}
 
     def add_response(self, user_id: int, emoji_code: str) -> Union[str, None]:
-        """Return the the emoji that was last responded"""
+        """Return the the emoji code that was removed"""
 
         emoji_code_removed = None
 
