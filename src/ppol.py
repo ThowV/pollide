@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Union
 
 import discord
 import requests
@@ -8,8 +8,9 @@ import requests
 class PPoll:
     title: str
     description: str
-    options: dict[str: int]
-    responses: dict[int: int]  # User id: Option id
+    options: dict[str: int]  # Emoji code: Response amount
+    option_descriptions: List[str]
+    responses: dict[int: List[str]]  # User id: Emoji code
     max_responses: List[int]
     multi_options: bool
     anonymous: bool
@@ -18,63 +19,78 @@ class PPoll:
     closing_time: str
     closing_date: str
 
-    emojis: List[str]
-
-    curr_y_responses: int
-    curr_n_responses: int
-    curr_m_responses: int
-
     logo_url: str
 
     def __init__(self):
         self.responses = {}
-        self.curr_y_responses = 0
-        self.curr_n_responses = 0
-        self.curr_m_responses = 0
 
     def clean(self):
         self.title = ' '.join(self.title)
         self.description = ' '.join(self.description) if self.description else None
 
-        if not self.options:
-            self.emojis = ['\U00002705', '\U00002796', '\U0001F1FD']
-            self.options = {'Yes': 0, 'Maybe': 0, 'No': 0}
+        if self.option_descriptions is None:
+            self.option_descriptions = ['yes', 'no', 'maybe']
+            self.options = {'\U00002705': 0, '\U00002796': 0, '\U0001F1FD': 0}
         else:
             self.options = {option: 0 for option in self.options}
 
-    def add_response(self, user_id, emoji_idx):
+    def add_response(self, user_id: int, emoji_code: str) -> Union[str, None]:
+        """Return the the emoji that was last responded"""
+
         # Check if multiple responses are allowed, if not, remove last response
         if not self.multi_options:
-            if user_id in self.responses:
-                self.remove_response(user_id)
+            self.remove_response(user_id)
 
         # Add response
-        self.responses[user_id] = emoji_idx
+        if user_id not in self.responses:
+            self.responses[user_id] = []
 
-        # Add response to response amount of option
-        option = list(self.options.keys())[emoji_idx]
-        response_amount = self.options.get(option)
-        self.options[option] = response_amount + 1
+        self.responses[user_id].append(emoji_code)
 
-    def remove_response(self, user_id):
-        emoji_idx = self.responses.pop(user_id, None)
+        # Add one to response amount of option
+        self.options[emoji_code] = self.options[emoji_code] + 1
 
-        if emoji_idx:
-            # Remove response from response amount of option
-            option = list(self.options.keys())[emoji_idx]
-            response_amount = self.options.get(option)
-            self.options[option] = response_amount - 1
+        return None
 
-    def respond(self, option_id: int):
-        # Add response
-        if option_id == 1:
-            self.curr_y_responses += 1
-        elif option_id == 2:
-            self.curr_m_responses += 1
-        elif option_id == 3:
-            self.curr_n_responses += 1
+    def remove_response(self, user_id: int, emoji: Union[str, int] = None) -> Union[str, None]:
+        """Return the the emoji code that was removed"""
 
-        return f"Poll {id(self)} standings: {self.curr_y_responses} - {self.curr_n_responses} - {self.curr_m_responses}"
+        # Get the emoji code and emoji index in different scenarios
+        if isinstance(emoji, int):
+            # Emoji index was provided, get the emoji name
+            emoji_idx = emoji
+
+            try:
+                emoji_code = self.get_emojis()[emoji_idx]
+            except KeyError:
+                # Wrong emoji index provided.
+                return None
+        elif isinstance(emoji, str):
+            # Emoji code was provided, get the emoji index
+            emoji_code = emoji
+
+            try:
+                emoji_idx = self.get_emojis().index(emoji)
+            except ValueError:
+                # Wrong emoji code provided.
+                return None
+        else:
+            # Nothing was provided, get the emoji code and index
+            try:
+                # We get the first emoji code because this block only triggers when one poll option is available
+                emoji_code = self.responses[user_id][0]
+                emoji_idx = self.get_emojis().index(emoji_code)
+            except KeyError or ValueError:
+                # User id did not respond yet or emoji was not an option
+                return None
+
+        # Remove the emoji code from the user responses
+        self.responses[user_id].remove(emoji_code)
+
+        # Remove response from option amounts
+        self.options[emoji_code] = self.options[emoji_code] - 1
+
+        return emoji_code
 
     def get_logo_url(self) -> str:
         game_search_result = requests.get(
@@ -113,16 +129,15 @@ class PPoll:
         embed = discord.Embed(
             title=f"Poll: {self.title}",
             description=self.description,
-            #url=f"https://www.google.com/search?q={'+'.join(self.title.split())}",
+            url=f"https://www.google.com/search?q={'+'.join(self.title.split())}",
             color=discord.Color.blue()
         )
 
         # Generate options info
         options_info = ''
-        for idx in range(len(self.options)):
-            option = list(self.options.keys())[idx]
-            response_amount = self.options.get(option)
-            options_info += f'{self.emojis[idx]} {option} - {response_amount}\n'
+        for idx in range(len(self.option_descriptions)):
+            option_description = self.option_descriptions[idx]
+            options_info += f'{self.get_emojis()[idx]} {option_description} - {self.get_response_amounts()[idx]}\n'
 
         embed.add_field(name='Votes', value=options_info)
 
@@ -131,7 +146,11 @@ class PPoll:
         return embed
 
     def get_emojis(self) -> List[str]:
-        return self.emojis
+        return list(self.options.keys())
 
-    def get_responses(self):
-        return f'{self.curr_y_responses} - {self.curr_m_responses} - {self.curr_n_responses}'
+    def get_response_amounts(self) -> List[int]:
+        return list(self.options.values())
+
+    def get_user_reactions(self, user_id) -> List[str]:
+        emojis = list(self.options.keys())
+        return [emojis[emoji_idx] for emoji_idx in [self.responses[user_id]]]

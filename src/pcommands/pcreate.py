@@ -32,7 +32,7 @@ class PCreate(PCommand):
         self.parser.add_argument('-d', '--description', nargs='+',
                                  help='Description of the poll.')
 
-        self.parser.add_argument('-o', '--options', action='extend', nargs='+', type=str,
+        self.parser.add_argument('-o', '--options', action='extend', nargs='+', type=str, dest='option_descriptions',
                                  help='Options users can pick from.')
 
         self.parser.add_argument('-mr', '--maximum_responses', action='extend', nargs='+', type=int,

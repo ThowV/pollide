@@ -8,9 +8,8 @@ from dotenv import load_dotenv
 
 import pcommands
 import pevents
-import ppoll_store
 import pvars
-from pevents import on_poll_reaction_add
+from pevents import on_poll_reaction_add, on_poll_reaction_remove
 from pcommands import pcommand
 
 
@@ -83,17 +82,18 @@ if __name__ == '__main__':
 
     @pvars.bot.event
     async def on_reaction_add(reaction: discord.Reaction, user: discord.User):
-        message: discord.Message = reaction.message
+        await pevents.on_poll_reaction_add.run(reaction, user)
 
-        if message.author.id == user.id:
-            return
 
-        poll = ppoll_store.get(message.id)
+    @pvars.bot.event
+    async def on_reaction_remove(reaction: discord.Reaction, user: discord.User):
+        await pevents.on_poll_reaction_remove.run(reaction, user)
 
-        if poll:
-            await pevents.on_poll_reaction_add.run(reaction, user, poll)
-
-        # await dcommands.Context.send(reaction.message.channel, f'test man {message.id}')
+    @pvars.bot.event
+    async def on_raw_reaction_remove(payload: discord.RawReactionActionEvent):
+        await pevents.on_poll_reaction_remove.run(
+            payload.channel_id, payload.message_id, payload.user_id, payload.emoji.name
+        )
 
 
     # Run discord client.
