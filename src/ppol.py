@@ -37,6 +37,9 @@ class PPoll:
         else:
             self.options = {option: 0 for option in self.options}
 
+        # Set the logo
+        self.logo_url = self.get_logo_url()
+
     def add_response(self, user_id: int, emoji_code: str) -> Union[str, None]:
         """Return the the emoji code that was removed"""
 
@@ -140,7 +143,7 @@ class PPoll:
 
         embed.add_field(name='Votes', value=options_info)
 
-        embed.set_thumbnail(url=self.get_logo_url())
+        embed.set_thumbnail(url=self.logo_url)
 
         return embed
 
