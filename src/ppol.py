@@ -6,12 +6,12 @@ import requests
 
 
 class PPoll:
+    # Poll data
+    logo_url: str
     title: str
     description: str
-    options: dict[str: int]  # Emoji code: Response amount
-    option_descriptions: List[str]
+    options: dict[str: [str, int]]  # Emoji code: [Option description, Response amount]
     responses: dict[int: List[str]]  # User id: Emoji code
-    max_responses: List[int]
     multi_options: bool
     anonymous: bool
     roles: List[str]
@@ -19,10 +19,14 @@ class PPoll:
     closing_time: str
     closing_date: str
 
-    logo_url: str
+    # Parsed destination data
+    max_responses: List[int]
+    option_descriptions: List[str]
 
     def __init__(self):
         self.responses = {}
+
+        self.max_responses = [0]
         self.option_descriptions = []
 
     def clean(self):
@@ -32,10 +36,13 @@ class PPoll:
 
         # Set option descriptions and options
         if not self.option_descriptions:
-            self.option_descriptions = ['yes', 'maybe', 'no']
-            self.options = {'\U00002705': 0, '\U00002796': 0, '\U0001F1FD': 0}
-        else:
-            self.options = {option: 0 for option in self.options}
+            self.options = {
+                '\U00002705': ['yes',   0],
+                '\U00002796': ['maybe', 0],
+                '\U0001F1FD': ['no',    0]
+            }
+        #else:
+        #    self.options = {option: [0] for option in self.options}
 
         # Set the logo
         self.logo_url = self.get_logo_url()
@@ -56,7 +63,7 @@ class PPoll:
         self.responses[user_id].append(emoji_code)
 
         # Add one to response amount of option
-        self.options[emoji_code] = self.options[emoji_code] + 1
+        self.options[emoji_code][1] = self.options[emoji_code][1] + 1
 
         return emoji_code_removed
 
@@ -87,7 +94,7 @@ class PPoll:
             self.responses[user_id].remove(emoji_code)
 
             # Remove response from option amounts
-            self.options[emoji_code] = self.options[emoji_code] - 1
+            self.options[emoji_code][1] = self.options[emoji_code][1] - 1
         except ValueError:
             return None
 
@@ -137,9 +144,8 @@ class PPoll:
 
         # Generate options info
         options_info = ''
-        for idx in range(len(self.option_descriptions)):
-            option_description = self.option_descriptions[idx]
-            options_info += f'{self.get_emojis()[idx]} {option_description} - {self.get_response_amounts()[idx]}\n'
+        for option, info in self.options.items():
+            options_info += f'{option} {info[0]} - {info[1]}\n'
 
         embed.add_field(name='Votes', value=options_info)
 
@@ -149,9 +155,6 @@ class PPoll:
 
     def get_emojis(self) -> List[str]:
         return list(self.options.keys())
-
-    def get_response_amounts(self) -> List[int]:
-        return list(self.options.values())
 
     def get_user_reactions(self, user_id) -> List[str]:
         emojis = list(self.options.keys())
