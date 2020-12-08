@@ -1,8 +1,8 @@
 import os
-from typing import List, Union
-
 import discord
 import requests
+
+from typing import List, Union
 
 
 class PPoll:
@@ -12,6 +12,7 @@ class PPoll:
     description: str
     options: dict[str: [str, int]]  # Emoji code: [Option description, Response amount]
     responses: dict[int: List[str]]  # User id: Emoji code
+    response_amount: int
     multi_options: bool
     anonymous: bool
     roles: List[str]
@@ -26,13 +27,14 @@ class PPoll:
     def __init__(self):
         self.responses = {}
 
-        self.max_responses = [0]
+        self.max_responses = []
         self.option_descriptions = []
 
     def clean(self):
-        # Set description and title
+        # Set title, description and response amount
         self.title = ' '.join(self.title)
         self.description = ' '.join(self.description) if self.description else None
+        self.response_amount = 0
 
         # Set option descriptions and options
         if not self.option_descriptions:
@@ -44,6 +46,13 @@ class PPoll:
         #else:
         #    self.options = {option: [0] for option in self.options}
 
+        # Set the max response amount for each option
+        for i, (option, info) in enumerate(self.options.items()):
+            if len(self.max_responses) > 1 and i < len(self.max_responses) and self.max_responses[i] >= 0:
+                info.append(self.max_responses[i])
+            else:
+                info.append(0)
+
         # Set the logo
         self.logo_url = self.get_logo_url()
 
@@ -51,6 +60,13 @@ class PPoll:
         """Return the the emoji code that was removed"""
 
         emoji_code_removed = None
+
+        # Check if the maximum of responses has been reached
+        if len(self.max_responses) == 1 and 0 < self.max_responses[0] <= self.response_amount:
+            return emoji_code
+
+        if self.options[emoji_code][2] != 0 and self.options[emoji_code][1] >= self.options[emoji_code][2]:
+            return emoji_code
 
         # Check if multiple responses are allowed, if not, remove last response
         if not self.multi_options:
@@ -62,8 +78,9 @@ class PPoll:
 
         self.responses[user_id].append(emoji_code)
 
-        # Add one to response amount of option
-        self.options[emoji_code][1] = self.options[emoji_code][1] + 1
+        # Add one to response amount of option and general response amount
+        self.options[emoji_code][1] += 1
+        self.response_amount += 1
 
         return emoji_code_removed
 
@@ -93,9 +110,10 @@ class PPoll:
             # Remove the emoji code from the user responses
             self.responses[user_id].remove(emoji_code)
 
-            # Remove response from option amounts
-            self.options[emoji_code][1] = self.options[emoji_code][1] - 1
-        except ValueError:
+            # Remove response from option amounts and general response amount
+            self.options[emoji_code][1] -= 1
+            self.response_amount -= 1
+        except ValueError or KeyError:
             return None
 
         # Return the removed emoji
@@ -145,10 +163,23 @@ class PPoll:
         # Generate options info
         options_info = ''
         for option, info in self.options.items():
-            options_info += f'{option} {info[0]} - {info[1]}\n'
+            options_info += f'{option} {info[0]} - '
 
-        embed.add_field(name='Votes', value=options_info)
+            if info[2] > 0:
+                options_info += f'({info[1]}/{info[2]})'
+            else:
+                options_info += f'{info[1]}'
 
+            options_info += f'\n'
+
+        # Generate field name
+        field_name = f'Votes ({self.response_amount}'
+        if len(self.max_responses) == 1 and self.max_responses[0] > 0:
+            field_name += f'/{self.max_responses[0]}'
+        field_name += ')'
+
+        # Finalize the embed
+        embed.add_field(name=field_name, value=options_info)
         embed.set_thumbnail(url=self.logo_url)
 
         return embed
