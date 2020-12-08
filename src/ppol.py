@@ -9,7 +9,7 @@ class PPoll:
     # Poll data
     logo_url: str
     title: str
-    description: str
+    description: Union[str, None]
     options: dict[str: [str, int]]  # Emoji code: [Option description, Response amount]
     responses: dict[int: List[str]]  # User id: Emoji code
     response_amount: int
@@ -21,7 +21,7 @@ class PPoll:
     closing_date: str
 
     # Parsed destination data
-    max_responses: List[int]
+    max_responses: Union[List[int], int, None]
     option_descriptions: List[str]
 
     def __init__(self):
@@ -47,8 +47,13 @@ class PPoll:
         #    self.options = {option: [0] for option in self.options}
 
         # Set the max response amount for each option
+        if len(self.max_responses) == 0:
+            self.max_responses = None
+        elif len(self.max_responses) == 1 and self.max_responses[0] > 0:
+            self.max_responses = self.max_responses[0]
+
         for i, (option, info) in enumerate(self.options.items()):
-            if len(self.max_responses) > 1 and i < len(self.max_responses) and self.max_responses[i] >= 0:
+            if type(self.max_responses) is list and i < len(self.max_responses) and self.max_responses[i] >= 0:
                 info.append(self.max_responses[i])
             else:
                 info.append(0)
@@ -62,7 +67,7 @@ class PPoll:
         emoji_code_removed = None
 
         # Check if the maximum of responses has been reached
-        if len(self.max_responses) == 1 and 0 < self.max_responses[0] <= self.response_amount:
+        if type(self.max_responses) is int and self.max_responses <= self.response_amount:
             return emoji_code
 
         if self.options[emoji_code][2] != 0 and self.options[emoji_code][1] >= self.options[emoji_code][2]:
@@ -174,8 +179,8 @@ class PPoll:
 
         # Generate field name
         field_name = f'Votes ({self.response_amount}'
-        if len(self.max_responses) == 1 and self.max_responses[0] > 0:
-            field_name += f'/{self.max_responses[0]}'
+        if type(self.max_responses) is int and self.max_responses > 0:
+            field_name += f'/{self.max_responses}'
         field_name += ')'
 
         # Finalize the embed
