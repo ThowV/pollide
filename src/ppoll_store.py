@@ -1,4 +1,4 @@
-from ppol import PPoll
+from ppoll import PPoll
 
 active_polls = {}
 

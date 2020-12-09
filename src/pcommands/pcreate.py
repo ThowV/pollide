@@ -4,7 +4,7 @@ import ppoll_store
 
 from pcommands.pcommand import PCommand
 from pembeds import PArgumentError
-from ppol import PPoll
+from ppoll import PPoll
 
 
 class PCreate(PCommand):
