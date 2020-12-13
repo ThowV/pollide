@@ -82,7 +82,7 @@ if __name__ == '__main__':
     @pvars.bot.event
     async def on_raw_reaction_add(payload: discord.RawReactionActionEvent):
         await pevents.on_poll_reaction_add.run(
-            payload.channel_id, payload.message_id, payload.user_id, payload.emoji.name
+            payload.channel_id, payload.message_id, payload.user_id, payload.member.display_name, payload.emoji.name
         )
 
     @pvars.bot.event

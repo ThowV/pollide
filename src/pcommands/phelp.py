@@ -3,7 +3,7 @@ import discord
 
 from pbot import get_pcommands
 from pcommands.pcommand import PCommand
-from pembeds import PArgumentError, PError
+from pembeds import PError
 
 
 def generate_help() -> str:

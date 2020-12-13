@@ -3,7 +3,7 @@ import ppoll_store
 import pvars
 
 
-async def run(channel_id: int, message_id: int, user_id: int, emoji_code: str):
+async def run(channel_id: int, message_id: int, user_id: int, user_name: str, emoji_code: str):
     # Get channel
     channel: discord.TextChannel = pvars.bot.get_channel(channel_id)
 
@@ -21,7 +21,7 @@ async def run(channel_id: int, message_id: int, user_id: int, emoji_code: str):
         return
 
     # Add the response and get the removed emoji if there is one
-    emoji_code_removed = poll.add_response(user_id, emoji_code)
+    emoji_code_removed = poll.add_response(user_id, user_name, emoji_code)
 
     # Remove the emoji from the reactions
     if emoji_code_removed is not None:

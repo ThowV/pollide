@@ -10,19 +10,19 @@ class PPoll:
     logo_url: str
     title: str
     description: Union[str, None]
-    options: dict[str: [str, int]]  # Emoji code: [Option description, Response amount]
-    responses: dict[int: List[str]]  # User id: Emoji code
+    options: {str: [str, int]}  # Emoji code: [Option description, Response amount]
+    responses: {int: [str, [str]]}  # User id: [User name, [Emoji codes]]
     response_amount: int
     multi_options: bool
     anonymous: bool
-    roles: List[str]
+    roles: [str]
     dest_channel: str
     closing_time: str
     closing_date: str
 
     # Parsed destination data
     max_responses: Union[List[int], int, None]
-    option_descriptions: List[str]
+    option_descriptions: [str]
 
     def __init__(self):
         self.responses = {}
@@ -39,9 +39,9 @@ class PPoll:
         # Set option descriptions and options
         if not self.option_descriptions:
             self.options = {
-                '\U00002705': ['yes',   0],
-                '\U00002796': ['maybe', 0],
-                '\U0001F1FD': ['no',    0]
+                '\U00002705': ['Yes',   0],
+                '\U00002754': ['Maybe', 0],
+                '\U0001F1FD': ['No',    0]
             }
         #else:
         #    self.options = {option: [0] for option in self.options}
@@ -61,7 +61,7 @@ class PPoll:
         # Set the logo
         self.logo_url = self.get_logo_url()
 
-    def add_response(self, user_id: int, emoji_code: str) -> Union[str, None]:
+    def add_response(self, user_id: int, user_name: str, emoji_code: str) -> Union[str, None]:
         """Return the the emoji code that was removed"""
 
         emoji_code_removed = None
@@ -79,9 +79,9 @@ class PPoll:
 
         # Add response
         if user_id not in self.responses:
-            self.responses[user_id] = []
+            self.responses[user_id] = [user_name, []]
 
-        self.responses[user_id].append(emoji_code)
+        self.responses[user_id][1].append(emoji_code)
 
         # Add one to response amount of option and general response amount
         self.options[emoji_code][1] += 1
@@ -106,14 +106,14 @@ class PPoll:
             # Nothing was provided, get the emoji code and index
             try:
                 # We get the first emoji code because this block only triggers when one poll option is available
-                emoji_code = self.responses[user_id][0]
+                emoji_code = self.responses[user_id][1][0]
             except KeyError or ValueError:
                 # User id did not respond yet
                 return None
 
         try:
             # Remove the emoji code from the user responses
-            self.responses[user_id].remove(emoji_code)
+            self.responses[user_id][1].remove(emoji_code)
 
             # Remove response from option amounts and general response amount
             self.options[emoji_code][1] -= 1
@@ -167,15 +167,25 @@ class PPoll:
 
         # Generate options info
         options_info = ''
-        for option, info in self.options.items():
-            options_info += f'{option} {info[0]} - '
+        for emoji_code, option in self.options.items():
+            # Get the emoji_code and amount of responses
+            options_info += f'{emoji_code} {option[0]} - '
 
-            if info[2] > 0:
-                options_info += f'({info[1]}/{info[2]})'
+            if option[2] > 0:
+                options_info += f'({option[1]}/{option[2]})'
             else:
-                options_info += f'{info[1]}'
+                options_info += f'{option[1]}'
 
             options_info += f'\n'
+
+            # Get the users that responded to each option
+            user_responses = ''
+            for response in self.responses.values():
+                if emoji_code in response[1]:
+                    user_responses += '\n' + response[0]
+
+            if user_responses:
+                options_info += '```' + user_responses + '```'
 
         # Generate field name
         field_name = f'Votes ({self.response_amount}'
@@ -189,9 +199,9 @@ class PPoll:
 
         return embed
 
-    def get_emojis(self) -> List[str]:
+    def get_emojis(self) -> [str]:
         return list(self.options.keys())
 
-    def get_user_reactions(self, user_id) -> List[str]:
+    def get_user_reactions(self, user_id) -> [str]:
         emojis = list(self.options.keys())
-        return [emojis[emoji_idx] for emoji_idx in [self.responses[user_id]]]
+        return [emojis[emoji_idx] for emoji_idx in [self.responses[user_id][1]]]
