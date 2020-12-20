@@ -1,9 +1,11 @@
 import argparse
 import discord
+
 import ppoll_store
 
 from pcommands.pcommand import PCommand
-from pembeds import PArgumentError
+from pembeds import PArgumentError, PError
+from perrors import OptionOverflowError
 from ppoll import PPoll
 
 
@@ -42,10 +44,10 @@ class PCreate(PCommand):
             help='Whether people can choose multiple options. (Default: %(default)s)'
         )
 
-        """
         self.parser.add_argument('-o', '--options', action='extend', nargs='+', type=str, dest='option_descriptions',
                                  help='Options users can pick from.')
-                                 
+
+        """
         self.parser.add_argument('-a', '--anonymous', action='store_true', default=False,
                                  help='Whether this poll is anonymous or not. (Default: %(default)s)')
 
@@ -77,5 +79,7 @@ class PCreate(PCommand):
             # Add emoji reactions to sent message.
             for emoji in poll.get_emojis():
                 await message.add_reaction(emoji)
+        except OptionOverflowError as ooe:
+            await context.send(embed=PError.get_embed(self.get_name(), ooe.message, ooe.reason))
         except argparse.ArgumentError as ae:
             await context.send(embed=PArgumentError.get_embed(self.get_name(), ae.argument_name))

@@ -1,8 +1,11 @@
 import os
 import discord
 import requests
+import pvars
 
 from typing import List, Union
+
+from perrors import OptionOverflowError
 
 
 class PPoll:
@@ -20,12 +23,18 @@ class PPoll:
     closing_time: str
     closing_date: str
 
-    # Parsed destination data
+    # Parsed destination data, will be modified inside clean
     max_responses: Union[List[int], int, None]
     option_descriptions: [str]
 
     def __init__(self):
+        self.options = {
+            '\U00002705': ['Yes', 0],
+            '\U00002754': ['Maybe', 0],
+            '\U0001F1FD': ['No', 0]
+        }
         self.responses = {}
+        self.response_amount = 0
 
         self.max_responses = []
         self.option_descriptions = []
@@ -34,17 +43,39 @@ class PPoll:
         # Set title, description and response amount
         self.title = ' '.join(self.title)
         self.description = ' '.join(self.description) if self.description else None
-        self.response_amount = 0
 
         # Set option descriptions and options
-        if not self.option_descriptions:
-            self.options = {
-                '\U00002705': ['Yes',   0],
-                '\U00002754': ['Maybe', 0],
-                '\U0001F1FD': ['No',    0]
-            }
-        #else:
-        #    self.options = {option: [0] for option in self.options}
+        if self.option_descriptions:
+            self.options = {}
+
+            in_option = False
+            option_emoji = ''
+            option_pointer = 0
+            for option_part in self.option_descriptions:
+                add_part_to_option = in_option
+
+                # Check if the string holds the quotation mark
+                if '"' in option_part:
+                    option_part = option_part.replace('"', '')
+                    # Flip the in option boolean
+                    in_option = not in_option
+
+                    # If we are about to build an option create an entry in the options dictionary
+                    if in_option:
+                        add_part_to_option = True
+                        option_emoji = pvars.get_alphabet_emoji(option_pointer)
+                        self.options[option_emoji] = ['', 0]
+                        option_pointer += 1
+
+                # Add the option part to the option it belongs to
+                if add_part_to_option:
+                    self.options[option_emoji][0] += ' ' + option_part
+
+            # Check if too many options were provided
+            if len(self.options) > 20:
+                raise OptionOverflowError(
+                    20, len(self.options), 'Discord only supports 20 emojis.'
+                )
 
         # Set the max response amount for each option
         if len(self.max_responses) == 0:

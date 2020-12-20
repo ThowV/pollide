@@ -5,12 +5,18 @@ error_color = discord.Color.red()
 
 class PError:
     @staticmethod
-    def get_embed(command: str, message: str) -> discord.Embed:
+    def get_embed(command: str, message: str, reason: str = '') -> discord.Embed:
         embed = discord.Embed(
-            title=f'{command.capitalize()}: {message}.',
-            description=f'Type "p:help {command}" for information on the command and its arguments.',
+            title=f'{command.capitalize()}',
+            description=f'{message}\n\nType "p:help {command}" for information on the command and its arguments.',
             color=error_color
         )
+
+        if reason:
+            embed.add_field(
+                name='Reason',
+                value=reason
+            )
 
         return embed
 
